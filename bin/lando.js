@@ -109,6 +109,8 @@ bootstrap(options)
   const syntax = '<command> [args] [options] [-- global options]';
   yargs.usage(['Usage:', cmd, syntax].join(' '));
 
+  const updateManager = new lando.updates();
+
   /**
    * Event that allows other things to alter the tasks being loaded to the CLI.
    *
@@ -128,15 +130,16 @@ bootstrap(options)
   .then(() => {
     sudoBlock(lando.node.chalk.red('Lando should never be run as root!'));
   })
-
   // Check for updates and inform user if we have some
-  .then(() => Promise.resolve(lando.updates.fetch(lando.cache.get('updates')))
+  .then(() => Promise.resolve(updateManager.fetch(lando.cache.get('updates')))
 
   // Fetch and cache if needed
   .then(fetch => {
     if (fetch) {
       lando.log.verbose('Checking for updates...');
-      return lando.updates.refresh(lando.config.version)
+      console.log(lando.updates);
+      process.exit();
+      return updateManager.refresh(lando.config.version)
       .then(latest => {
         lando.cache.set('updates', latest, {persist: true});
       });
@@ -147,7 +150,7 @@ bootstrap(options)
   .then(() => {
     const current = lando.config.version;
     const latest = lando.cache.get('updates');
-    if (lando.updates.updateAvailable(current, latest.version)) {
+    if (updateManager.updateAvailable(current, latest.version)) {
       console.log(lando.cli.updateMessage(latest.url));
     }
   }))

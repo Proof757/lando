@@ -54,20 +54,28 @@ describe('updates', () => {
   });
 
   describe('#refresh', () => {
+    // We need a Github API Client to stub.
+    const github = new Github({Promise: Promise});
+    // Use our stubbed Github API so we don't make a real HTTP request.
+    updates.githubApi = github;
 
     it('Does a Barrel Roll if there is an error', function() {
-      // We need a Github API Client to stub.
-      const github = new Github({Promise: Promise});
-      // Use our stubbed Github API so we don't make a real HTTP request.
-      updates.githubApi = github;
+
       // Throw an error on purpose
-      sinon.stub(updates.githubApi.repos, 'getReleases').rejects('Whoops!');
+      const stub = sinon.stub(updates.githubApi.repos, 'getReleases').rejects('Whoops!');
+
       // If something goes wrong with the Github API, handle it gracefully.
       updates.refresh('vlolnotrealversion')
-        .then(res => res.should.be.an('object').with.property('version', 'vlolnotrealversion'));
+        .then(res => res.should.be.an('object').with.property('version', 'lolnotrealversion'));
+
+      stub.restore();
     });
 
-    it('')
+    it('filters out drafts/prereleases', function() {
+      const stub = sinon.stub(updates.githubApi.repos, 'getReleases').returns({
+
+      });
+    });
 
   });
 });
